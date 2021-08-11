@@ -17,3 +17,7 @@
   <img align="center" alt="Anderson-Spring" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/9f4f5cdb393299a81125eb5127929ea7bfe42889/icons/mysql/mysql-original.svg">
   <img align="center" alt="Anderson-Spring" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/9f4f5cdb393299a81125eb5127929ea7bfe42889/icons/postgresql/postgresql-original.svg">
 </div>
+
+ ##
+ 
+ ![Snake animation](https://github.com/andersonaraf/andersonaraf/blob/output/github-contribution-grid-snake.svg)
