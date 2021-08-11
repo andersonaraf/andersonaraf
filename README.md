@@ -1,5 +1,5 @@
 ### Olá! Eu sou Anderson Araújo
-- 🔭 I’m currently working on ...
+- 🔭 Atualmente estou trabalhando em um projeto laravel para avaliação de cadastro esportivo e cultural.
 
  <div>
   <a href="https://github.com/andersonaraf">
