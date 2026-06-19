@@ -5,6 +5,7 @@ import calendar
 import datetime as dt
 import json
 import os
+import re
 from pathlib import Path
 from urllib import request
 
@@ -17,7 +18,7 @@ OUT_FILE = OUT_DIR / "github-farm-harvest.svg"
 MONTHS = list(calendar.month_abbr)[1:]
 FARM_MAP = FARM_ASSETS / "map.png"
 FARMER_WALK_DIR = FARM_ASSETS / "farmer" / "walk-south"
-FALLBACK_COUNTS = [8, 14, 21, 17, 32, 26, 41, 38, 24, 29, 18, 12]
+FALLBACK_COUNTS = [0] * 12
 
 
 def image_data_uri(path: Path) -> str:
@@ -70,16 +71,41 @@ def graphql_monthly_counts(user: str, year: int, token: str) -> list[int]:
     ]
 
 
+def public_monthly_counts(user: str, year: int) -> list[int]:
+    url = f"https://github.com/users/{user}/contributions?from={year}-01-01&to={year}-12-31"
+    req = request.Request(url, headers={"User-Agent": "commit-farm-readme"})
+    with request.urlopen(req, timeout=30) as response:
+        html = response.read().decode("utf-8", errors="replace")
+
+    counts = [0] * 12
+    seen_dates = set()
+    month_lookup = {name: index for index, name in enumerate(calendar.month_name) if name}
+    pattern = re.compile(r"(\d+) contributions? on ([A-Z][a-z]+) (\d+)(?:st|nd|rd|th)")
+    for amount, month_name, day in pattern.findall(html):
+        month = month_lookup.get(month_name)
+        if not month:
+            continue
+        key = (month, int(day))
+        if key in seen_dates:
+            continue
+        seen_dates.add(key)
+        counts[month - 1] += int(amount)
+    return counts
+
+
 def monthly_counts() -> tuple[list[int], str, int]:
     user = os.getenv("GITHUB_USER") or os.getenv("GITHUB_REPOSITORY_OWNER") or "andersonaraf"
     year = int(os.getenv("FARM_YEAR") or dt.datetime.now(dt.timezone.utc).year)
     token = os.getenv("GH_TOKEN") or os.getenv("GITHUB_TOKEN")
-    if not token:
-        return FALLBACK_COUNTS, user, year
+    if token:
+        try:
+            return graphql_monthly_counts(user, year, token), user, year
+        except Exception as exc:
+            print(f"Using public contribution data: {exc}")
     try:
-        return graphql_monthly_counts(user, year, token), user, year
+        return public_monthly_counts(user, year), user, year
     except Exception as exc:
-        print(f"Using fallback contribution data: {exc}")
+        print(f"Using empty contribution data: {exc}")
         return FALLBACK_COUNTS, user, year
 
 
@@ -135,7 +161,7 @@ def render_svg(counts: list[int], user: str, year: int) -> str:
         (590, 302),
     ]
     key_times = ";".join(f"{index / 12:.3f}" for index in range(13))
-    transform_values = ";".join(f"translate({x} {y})" for x, y in positions + [positions[0]])
+    transform_values = ";".join(f"{x} {y}" for x, y in positions + [positions[0]])
 
     return f'''<svg xmlns="http://www.w3.org/2000/svg" width="768" height="512" viewBox="0 0 768 512" role="img" aria-labelledby="title desc">
   <title id="title">{xml_escape(user)} commit harvest farm</title>
@@ -151,13 +177,13 @@ def render_svg(counts: list[int], user: str, year: int) -> str:
   <image width="768" height="512" href="{image_data_uri(FARM_MAP)}" preserveAspectRatio="xMidYMid slice"/>
   <rect x="18" y="16" width="270" height="50" rx="10" fill="#111827" opacity=".72"/>
   <text x="36" y="38" class="title">Commit Harvest Farm</text>
-  <text x="36" y="56" class="subtitle">{xml_escape(user)} - {year} - {total} commits</text>
+  <text x="36" y="56" class="subtitle">{xml_escape(user)} - {year} - {total} public contributions</text>
   <rect x="540" y="456" width="200" height="28" rx="7" fill="#111827" opacity=".72"/>
   <text x="640" y="475" text-anchor="middle" class="small">Best harvest: {MONTHS[best_index]} - {max_count} commits</text>
   <g id="farmer" transform="translate({positions[0][0]} {positions[0][1]})">
     {speech_bubbles(counts)}
     <g transform="translate(-22 -36)">{farmer_frames()}</g>
-    <animate attributeName="transform" dur="30s" repeatCount="indefinite" calcMode="linear" keyTimes="{key_times}" values="{transform_values}"/>
+    <animateTransform attributeName="transform" type="translate" dur="30s" repeatCount="indefinite" calcMode="linear" keyTimes="{key_times}" values="{transform_values}"/>
   </g>
 </svg>
 '''
