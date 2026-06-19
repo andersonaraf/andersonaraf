@@ -20,4 +20,4 @@
 
  ##
  
- ![Snake animation](https://github.com/andersonaraf/andersonaraf/blob/output/github-contribution-grid-snake.svg)
+ ![Commit harvest farm](https://raw.githubusercontent.com/andersonaraf/andersonaraf/output/github-farm-harvest.svg)
