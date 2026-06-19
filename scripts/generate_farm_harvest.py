@@ -13,7 +13,7 @@ from urllib import request
 ROOT = Path(__file__).resolve().parents[1]
 FARM_ASSETS = ROOT / "assets" / "commit-farm"
 OUT_DIR = ROOT / "dist"
-OUT_FILE = OUT_DIR / "github-farm-harvest.svg"
+OUT_FILE = OUT_DIR / "github-commit-farm.svg"
 
 MONTHS = list(calendar.month_abbr)[1:]
 FARM_MAP = FARM_ASSETS / "map.png"

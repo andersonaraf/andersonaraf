@@ -20,4 +20,4 @@
 
  ##
  
- ![Commit harvest farm](https://raw.githubusercontent.com/andersonaraf/andersonaraf/output/github-farm-harvest.svg)
+ ![Commit harvest farm](https://raw.githubusercontent.com/andersonaraf/andersonaraf/output/github-commit-farm.svg)
